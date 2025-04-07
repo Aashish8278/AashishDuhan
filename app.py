@@ -5,18 +5,18 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import random
 
-# Spotify API setup
+
 client_id = "30706e60ea9c4b55a1c6e495f136321b"
 client_secret = "a161bd80c33c4e41b8167e4ab627cd47"
 
 client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
-# Load data
+
 df = pickle.load(open("df.pkl", "rb"))
 similarity = pickle.load(open("similarity.pkl", "rb"))
 
-# Recommend function
+
 def recommend(song_name):
     song_list = df['song'].fillna('').str.lower().tolist()
     close_matches = get_close_matches(song_name.lower(), song_list, n=1)
@@ -28,7 +28,6 @@ def recommend(song_name):
     song_scores = sorted(list(enumerate(similarity[match_index])), key=lambda x: x[1], reverse=True)[1:6]
     return [df.iloc[i[0]]['song'] for i in song_scores]
 
-# Spotify info
 def get_spotify_link(song_name):
     results = sp.search(q=song_name, limit=1, type='track')
     if results['tracks']['items']:
@@ -39,7 +38,6 @@ def get_spotify_link(song_name):
     else:
         return None, None
 
-# AI Lyric Generator (simple version for now)
 def generate_lyrics(theme):
     lines = [
         f"🎤 In the rhythm of {theme}, my soul takes flight,",
@@ -50,7 +48,7 @@ def generate_lyrics(theme):
     random.shuffle(lines)
     return "\n".join(lines)
 
-# UI Design
+
 st.set_page_config(page_title="🎵 AI Music Recommender", page_icon="🎶", layout="wide")
 st.markdown("""
     <style>
@@ -62,13 +60,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# App Title
+
 st.title("🎵 AI Music Recommender")
 
-# Sidebar Navigation
+
 option = st.sidebar.radio("Choose Feature", ["🔍 Recommend Songs", "✍️ Generate Lyrics"])
 
-# Recommend Songs
+
 if option == "🔍 Recommend Songs":
     user_input = st.text_input("Enter a song name:")
     if st.button("Recommend"):
