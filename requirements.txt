@@ -3,3 +3,4 @@ pandas
 numpy
 spotipy
 openai
+youtube-search-python
