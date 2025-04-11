@@ -102,7 +102,7 @@ if option == "🔍 Recommend Songs":
                     cols = st.columns([1, 2])
                     with cols[0]:
                         if album_cover:
-                            st.image(album_cover, caption="Album Art", use_column_width=True)
+                            st.image(album_cover, caption="Album Art", use_container_width=True)
                         else:
                             st.write("No cover available.")
 
