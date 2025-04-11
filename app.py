@@ -6,23 +6,18 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from googleapiclient.discovery import build
 
-# Set API Keys
 SPOTIFY_CLIENT_ID = "30706e60ea9c4b55a1c6e495f136321b"
 SPOTIFY_CLIENT_SECRET = "a161bd80c33c4e41b8167e4ab627cd47"
 YOUTUBE_API_KEY = "AIzaSyDvDYbr5Lwlt-pz_Ej2Ut0eLprDT7XKBP0"
 
-# Spotify Auth
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET))
 
-# YouTube Auth
 youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
-# Load pickled model/data
 df = pickle.load(open("df.pkl", "rb"))
 similarity = pickle.load(open("similarity.pkl", "rb"))
 
-# Functions
 def recommend(song_name):
     song_list = df['song'].fillna('').str.lower().tolist()
     close_matches = get_close_matches(song_name.lower(), song_list, n=1)
@@ -52,7 +47,6 @@ def get_youtube_link(song_name):
             return f"https://www.youtube.com/watch?v={video_id}"
         return None
     except Exception as e:
-        print("YouTube API error:", e)
         return None
 
 def generate_lyrics(theme):
@@ -65,7 +59,6 @@ def generate_lyrics(theme):
     random.shuffle(lines)
     return "\n".join(lines)
 
-# Streamlit UI
 st.set_page_config(page_title="🎵 AI Music Recommender", page_icon="🎶", layout="wide")
 st.title("🎵 AI Music Recommender")
 
