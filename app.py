@@ -11,7 +11,6 @@ SPOTIFY_CLIENT_ID = "30706e60ea9c4b55a1c6e495f136321b"
 SPOTIFY_CLIENT_SECRET = "a161bd80c33c4e41b8167e4ab627cd47"
 YOUTUBE_API_KEY = "AIzaSyDvDYbr5Lwlt-pz_Ej2Ut0eLprDT7XKBP0"
 
-openai.api_key = OPENAI_API_KEY
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET))
