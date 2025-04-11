@@ -1,7 +1,6 @@
 import streamlit as st
 import pickle
 import random
-import openai
 from difflib import get_close_matches
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -10,7 +9,6 @@ from googleapiclient.discovery import build
 SPOTIFY_CLIENT_ID = "30706e60ea9c4b55a1c6e495f136321b"
 SPOTIFY_CLIENT_SECRET = "a161bd80c33c4e41b8167e4ab627cd47"
 YOUTUBE_API_KEY = "AIzaSyDvDYbr5Lwlt-pz_Ej2Ut0eLprDT7XKBP0"
-
 
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
     client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET))
@@ -53,19 +51,13 @@ def get_youtube_link(song_name):
         return None
 
 def generate_lyrics(theme):
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a creative and poetic songwriter."},
-                {"role": "user", "content": f"Write a full-length original song about the theme: {theme}. Include verses, a chorus, and a bridge. Make it poetic and emotional."}
-            ],
-            temperature=0.9,
-            max_tokens=300
-        )
-        return response['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        return f"❌ Error generating lyrics: {str(e)}"
+    templates = [
+        f"Under the sky of {theme}, the winds softly sigh,\nWhispers of dreams, they shimmer and fly.\nIn every heartbeat, the {theme} takes its place,\nPainting my soul with a gentle embrace.",
+        f"The {theme} in my heart, it won't let go,\nThrough stormy nights and mornings aglow.\nEvery word I sing is drenched in {theme},\nLike rivers flowing in a vivid dream.",
+        f"Let the world fade, but {theme} remain,\nA rhythm running deep like rain.\nThis melody's wrapped in {theme}'s spell,\nA tale only the moon can tell.",
+        f"Chasing echoes of {theme} in the dark,\nLighting my path like a glowing spark.\nNo silence loud enough to break,\nThe promise {theme} dares to make."
+    ]
+    return random.choice(templates)
 
 st.set_page_config(page_title="🎵 AI Music Recommender", page_icon="🎶", layout="wide")
 st.title("🎵 AI Music Recommender")
