@@ -4,3 +4,5 @@ numpy
 spotipy
 openai
 youtube-search-python
+yt-dlp
+scikit-learn
