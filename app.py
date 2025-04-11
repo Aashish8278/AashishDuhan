@@ -1,24 +1,21 @@
 import streamlit as st
 import pickle
+import random
 from difflib import get_close_matches
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import yt_dlp
-import random
+from youtubesearchpython import VideosSearch
 
-# Spotify API credentials
+# ---- Spotify Setup ----
 client_id = "30706e60ea9c4b55a1c6e495f136321b"
 client_secret = "a161bd80c33c4e41b8167e4ab627cd47"
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id, client_secret))
 
-client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
-# Load song data and similarity matrix
+# ---- Load Data ----
 df = pickle.load(open("df.pkl", "rb"))
 similarity = pickle.load(open("similarity.pkl", "rb"))
 
-# --- FUNCTIONS ---
-
+# ---- Recommend Function ----
 def recommend(song_name):
     song_list = df['song'].fillna('').str.lower().tolist()
     close_matches = get_close_matches(song_name.lower(), song_list, n=1)
@@ -30,6 +27,7 @@ def recommend(song_name):
     song_scores = sorted(list(enumerate(similarity[match_index])), key=lambda x: x[1], reverse=True)[1:6]
     return [df.iloc[i[0]]['song'] for i in song_scores]
 
+# ---- Get Spotify Link ----
 def get_spotify_link(song_name):
     results = sp.search(q=song_name, limit=1, type='track')
     if results['tracks']['items']:
@@ -40,23 +38,19 @@ def get_spotify_link(song_name):
     else:
         return None, None
 
+# ---- Get YouTube Link ----
 def get_youtube_link(song_name):
-    query = f"{song_name} official music video"
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,
-        'extract_flat': True,
-        'default_search': 'ytsearch1',
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(query, download=False)
-            if 'entries' in info and len(info['entries']) > 0:
-                return f"https://www.youtube.com/watch?v={info['entries'][0]['id']}"
-        except Exception as e:
-            return None
-    return None
+    try:
+        query = f"{song_name} official music video"
+        videos_search = VideosSearch(query, limit=1)
+        result = videos_search.result()
+        video_url = result['result'][0]['link']
+        return video_url
+    except Exception as e:
+        print("YouTube fetch error:", e)
+        return None
 
+# ---- Generate Lyrics ----
 def generate_lyrics(theme):
     lines = [
         f"🎤 In the rhythm of {theme}, my soul takes flight,",
@@ -67,10 +61,8 @@ def generate_lyrics(theme):
     random.shuffle(lines)
     return "\n".join(lines)
 
-# --- STREAMLIT UI CONFIGURATION ---
-
+# ---- Streamlit UI ----
 st.set_page_config(page_title="🎵 AI Music Recommender", page_icon="🎶", layout="wide")
-
 st.markdown("""
     <style>
         body { background: linear-gradient(to bottom, #121212, #1e1e1e); color: white; }
@@ -85,35 +77,36 @@ st.title("🎵 AI Music Recommender")
 
 option = st.sidebar.radio("Choose Feature", ["🔍 Recommend Songs", "✍️ Generate Lyrics"])
 
-# --- RECOMMENDATION FEATURE ---
+# ---- Recommend Songs ----
 if option == "🔍 Recommend Songs":
     user_input = st.text_input("Enter a song name:")
     if st.button("Recommend"):
         if user_input:
             results = recommend(user_input)
             if results:
-                st.subheader("🎧 Recommended Songs:")
-                for song in results:
-                    spotify_link, album_cover = get_spotify_link(song)
-                    youtube_link = get_youtube_link(song)
+                st.subheader("Recommended Songs:")
+                cols = st.columns(5)
+                for i, song in enumerate(results):
+                    link, cover = get_spotify_link(song)
+                    youtube_url = get_youtube_link(song)
 
-                    cols = st.columns(2)
-                    with cols[0]:
-                        if album_cover:
-                            st.image(album_cover, caption=song, use_container_width=True)
-                        if spotify_link:
-                            st.markdown(f"[🎧 Listen on Spotify]({spotify_link})", unsafe_allow_html=True)
-                    with cols[1]:
-                        if youtube_link:
-                            st.video(youtube_link)
+                    if link and cover:
+                        cols[i % 5].markdown(f"""
+                            <div class="card">
+                                <img src="{cover}">
+                                <h3>{song}</h3>
+                                <a href="{link}" target="_blank">🔗 Listen on Spotify</a>
+                            </div>
+                        """, unsafe_allow_html=True)
+
+                        if youtube_url:
+                            cols[i % 5].video(youtube_url)
                         else:
-                            st.warning("YouTube video not found.")
+                            cols[i % 5].write("❌ YouTube video not found.")
             else:
                 st.warning("❌ Song not found.")
-        else:
-            st.info("Please enter a song name.")
 
-# --- LYRICS GENERATOR FEATURE ---
+# ---- AI Lyric Generator ----
 elif option == "✍️ Generate Lyrics":
     theme = st.text_input("Enter a theme or mood (love, party, night, etc.):")
     if st.button("Generate Lyrics"):
